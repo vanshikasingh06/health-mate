@@ -5,6 +5,8 @@ from flask_login import LoginManager, UserMixin, login_user, login_required, log
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime, timedelta
 import os
+import requests
+
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'your-secret-key-here'
@@ -36,6 +38,7 @@ class User(UserMixin, db.Model):
     sleep_logs = db.relationship('SleepLog', backref='user', lazy=True)
     mood_logs = db.relationship('MoodLog', backref='user', lazy=True)
     goals = db.relationship('Goal', backref='user', lazy=True)
+    journal_entries = db.relationship('JournalEntry', backref='user', lazy=True)
 
 class HealthRecord(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -86,6 +89,12 @@ class Goal(db.Model):
     unit = db.Column(db.String(20))
     deadline = db.Column(db.DateTime)
     completed = db.Column(db.Boolean, default=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+class JournalEntry(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    content = db.Column(db.Text, nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
 @login_manager.user_loader
@@ -388,6 +397,48 @@ def progress():
                          exercise_data=exercise_data,
                          water_data=water_data,
                          sleep_data=sleep_data)
+
+@app.route('/journal', methods=['GET', 'POST'])
+@login_required
+def journal():
+    if request.method == 'POST':
+        content = request.form['content']
+        if content.strip():
+            entry = JournalEntry(user_id=current_user.id, content=content)
+            db.session.add(entry)
+            db.session.commit()
+            flash('Journal entry added!', 'success')
+        return redirect(url_for('journal'))
+
+    entries = JournalEntry.query.filter_by(user_id=current_user.id)\
+                .order_by(JournalEntry.created_at.desc()).all()
+    from datetime import datetime 
+    # Random quote from ZenQuotes API
+    quote_data = requests.get(f"https://zenquotes.io/api/random?time={datetime.utcnow().timestamp()}").json()
+    quote = f"{quote_data[0]['q']} — {quote_data[0]['a']}"
+
+    # Random fact from Useless Facts API
+    try:
+          fact_data = requests.get("https://api.viewbits.com/v1/uselessfacts?mode=random").json()
+          fact = fact_data['text']
+    except:
+      fact = "Did you know? The average person walks the equivalent of five times around the world in their lifetime."
+
+    return render_template('journal.html', entries=entries, quote=quote, fact=fact)
+
+@app.route('/delete_journal/<int:entry_id>', methods=['POST'])
+@login_required
+def delete_journal(entry_id):
+    entry = JournalEntry.query.get_or_404(entry_id)
+    if entry.user_id != current_user.id:
+        flash("Unauthorized action!", "danger")
+        return redirect(url_for('journal'))
+    
+    db.session.delete(entry)
+    db.session.commit()
+    flash("Journal entry deleted successfully!", "success")
+    return redirect(url_for('journal'))
+
 
 
 
