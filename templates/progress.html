@@ -1,0 +1,65 @@
+
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+  <h2>📈 Your Progress</h2>
+
+  <canvas id="exerciseChart" height="100"></canvas>
+  <canvas id="waterChart" height="100" class="mt-4"></canvas>
+  <canvas id="sleepChart" height="100" class="mt-4"></canvas>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script type="text/javascript">
+  // @ts-nocheck
+
+  // Exercise Chart
+  const exerciseLabels = {{ exercise_data | map(attribute='date') | list | tojson }};
+  const exerciseValues = {{ exercise_data | map(attribute='total_duration') | list | tojson }};
+
+  new Chart(document.getElementById('exerciseChart'), {
+    type: 'bar',
+    data: {
+      labels: exerciseLabels,
+      datasets: [{
+        label: 'Exercise (min)',
+        data: exerciseValues,
+        backgroundColor: 'rgba(75, 192, 192, 0.6)'
+      }]
+    }
+  });
+
+  // Water Chart
+  const waterLabels = {{ water_data | map(attribute='date') | list | tojson }};
+  const waterValues = {{ water_data | map(attribute='total_water') | list | tojson }};
+
+  new Chart(document.getElementById('waterChart'), {
+    type: 'bar',
+    data: {
+      labels: waterLabels,
+      datasets: [{
+        label: 'Water Intake (L)',
+        data: waterValues,
+        backgroundColor: 'rgba(54, 162, 235, 0.6)'
+      }]
+    }
+  });
+
+  // Sleep Chart
+  const sleepLabels = {{ sleep_data | map(attribute='date') | list | tojson }};
+  const sleepValues = {{ sleep_data | map(attribute='avg_sleep') | list | tojson }};
+
+  new Chart(document.getElementById('sleepChart'), {
+    type: 'bar',
+    data: {
+      labels: sleepLabels,
+      datasets: [{
+        label: 'Sleep (hrs)',
+        data: sleepValues,
+        backgroundColor: 'rgba(255, 206, 86, 0.6)'
+      }]
+    }
+  });
+</script>
+{% endblock %}

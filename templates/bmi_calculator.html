@@ -1,0 +1,13 @@
+
+{% extends 'base.html' %}
+{% block content %}
+<h2>📏 BMI Calculator</h2>
+<p>Your BMI is: <strong>{{ bmi|round(2) }}</strong> ({{ category }})</p>
+
+<h4>💡 Advice:</h4>
+<ul>
+  {% for tip in advice %}
+    <li>✅ {{ tip }}</li>
+  {% endfor %}
+</ul>
+{% endblock %}

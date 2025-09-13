@@ -1,0 +1,33 @@
+
+{% extends 'base.html' %}
+{% block content %}
+<h2>💪 Exercise Tracker</h2>
+<form method="POST" class="mb-4">
+  <div class="row">
+    <div class="col-md-4"><input type="text" name="exercise_type" placeholder="Exercise Type" class="form-control" required></div>
+    <div class="col-md-4"><input type="number" name="duration" placeholder="Duration (min)" class="form-control" required></div>
+    <div class="col-md-4">
+      <select name="intensity" class="form-control" required>
+        <option value="low">Low 🐢</option>
+        <option value="medium">Medium 🚶‍♂️</option>
+        <option value="high">High 🏃‍♀️</option>
+      </select>
+    </div>
+  </div>
+  <button class="btn btn-success mt-2">Log Exercise</button>
+</form>
+
+<h4>📜 Exercise History</h4>
+<table class="table table-striped">
+  <tr><th>Type</th><th>Duration</th><th>Intensity</th><th>Calories</th><th>Date</th></tr>
+  {% for log in exercise_logs %}
+    <tr>
+      <td>{{ log.exercise_type }}</td>
+      <td>{{ log.duration }} min</td>
+      <td>{{ log.intensity }}</td>
+      <td>{{ log.calories_burned }}</td>
+      <td>{{ log.recorded_at.strftime('%Y-%m-%d') }}</td>
+    </tr>
+  {% endfor %}
+</table>
+{% endblock %}

@@ -1,0 +1,72 @@
+
+{% extends 'base.html' %}
+{% block content %}
+<h2>😊 Mood Tracker</h2>
+
+<form method="POST" class="mb-4">
+  <div class="row g-2 align-items-center">
+    <div class="col-md-4">
+      <select name="mood" class="form-control" required>
+        <option value="Happy">😊 Happy</option>
+        <option value="Sad">😢 Sad</option>
+        <option value="Angry">😡 Angry</option>
+        <option value="Excited">🤩 Excited</option>
+        <option value="Tired">🥱 Tired</option>
+      </select>
+    </div>
+    <div class="col-md-8">
+      <input type="text" name="notes" placeholder="Notes" class="form-control">
+    </div>
+  </div>
+  <button class="btn btn-primary mt-2">Log Mood</button>
+</form>
+
+<h4>📜 Mood History</h4>
+<div class="table-responsive">
+  <table class="table table-striped align-middle">
+    <thead class="table-light">
+      <tr>
+        <th>Avatar</th>
+        <th>Mood</th>
+        <th>Notes</th>
+        <th>Date</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for log in mood_logs %}
+        <tr>
+          <!-- Avatar image based on mood -->
+          <td>
+            {% if log.mood == 'Happy' %}
+              <img src="{{ url_for('static', filename='avatars/happy.png') }}" alt="Happy Avatar" width="40">
+            {% elif log.mood == 'Sad' %}
+              <img src="{{ url_for('static', filename='avatars/sad.png') }}" alt="Sad Avatar" width="40">
+            {% elif log.mood == 'Angry' %}
+              <img src="{{ url_for('static', filename='avatars/angry.png') }}" alt="Angry Avatar" width="40">
+            {% elif log.mood == 'Excited' %}
+              <img src="{{ url_for('static', filename='avatars/excited.png') }}" alt="Excited Avatar" width="40">
+            {% elif log.mood == 'Tired' %}
+              <img src="{{ url_for('static', filename='avatars/tired.png') }}" alt="Tired Avatar" width="40">
+            {% else %}
+              <img src="{{ url_for('static', filename='avatars/default.png') }}" alt="Default Avatar" width="40">
+            {% endif %}
+          </td>
+
+          <!-- Emoji + Mood text -->
+          <td>
+            {% if log.mood == 'Happy' %} 😊 {% elif log.mood == 'Sad' %} 😢 {% elif log.mood == 'Angry' %} 😡 {% elif log.mood == 'Excited' %} 🤩 {% elif log.mood == 'Tired' %} 🥱 {% endif %}
+            {{ log.mood }}
+          </td>
+
+          <td>{{ log.notes or '' }}</td>
+          <td>{{ log.recorded_at.strftime('%Y-%m-%d') if log.recorded_at else '' }}</td>
+        </tr>
+      {% else %}
+        <tr>
+          <td colspan="4" class="text-muted">No mood logs yet 😊</td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

@@ -1,0 +1,15 @@
+
+{% extends 'base.html' %}
+{% block content %}
+<h2>📊 Dashboard</h2>
+<p>Welcome, {{ user.name }}! 🎉</p>
+<div class="row">
+  <div class="col-md-4"><div class="card p-3">📏 BMI: {{ bmi|round(2) }}</div></div>
+  <div class="col-md-4"><div class="card p-3">🔥 Daily Calories: {{ daily_calories|round(0) }}</div></div>
+  <div class="col-md-4"><div class="card p-3">💧 Water Today: {{ today_water }} L</div></div>
+</div>
+<div class="row mt-3">
+  <div class="col-md-4"><div class="card p-3">💪 Exercise Today: {{ today_exercise }} min</div></div>
+  <div class="col-md-4"><div class="card p-3">😴 Sleep Today: {{ today_sleep }} hrs</div></div>
+</div>
+{% endblock %}

@@ -1,0 +1,60 @@
+
+{% extends 'base.html' %}
+{% block content %}
+<h2>💧 Water Tracker</h2>
+
+<!-- Form to log water -->
+<form method="POST" class="mb-4">
+  <div class="row g-2">
+    <div class="col-md-6">
+      <input type="number" step="0.1" name="amount" placeholder="Amount (Liters)" class="form-control" required>
+    </div>
+    <div class="col-md-6">
+      <button class="btn btn-primary w-100">Log Water 💧</button>
+    </div>
+  </div>
+</form>
+
+<!-- Today's progress -->
+{% set pct = 0 %}
+{% if target_water and target_water > 0 %}
+  {% set pct = (today_water / target_water) * 100 %}
+{% endif %}
+
+<div class="card mb-4">
+  <div class="card-body">
+    <h5 class="card-title">Today’s Intake</h5>
+    <p class="mb-2">
+      You’ve had <strong>{{ today_water|round(2) }} L</strong> out of 
+      <strong>{{ target_water|round(2) }} L</strong> 🎯
+    </p>
+    
+    </div>
+  </div>
+</div>
+
+<!-- History table -->
+<h4>📜 Water History</h4>
+<div class="table-responsive">
+  <table class="table table-striped align-middle">
+    <thead class="table-light">
+      <tr>
+        <th>Amount (L)</th>
+        <th>Date</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for log in water_logs %}
+        <tr>
+          <td>{{ log.amount }}</td>
+          <td>{{ log.recorded_at.strftime('%Y-%m-%d') }}</td>
+        </tr>
+      {% else %}
+        <tr>
+          <td colspan="2" class="text-muted">No logs yet. Add your first water entry above! 💧</td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}
