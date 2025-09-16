@@ -4,8 +4,16 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime, timedelta
+
+
 import os
 import requests
+
+from flask import Flask, render_template
+import random
+
+
+
 
 
 app = Flask(__name__)
@@ -18,6 +26,26 @@ login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = 'login'
 
+articles = [
+    {"title": "The Link Between Hormones and Mental Health", "url": "https://www.verywellmind.com/the-link-between-hormones-and-mental-health-7500077"},
+    {"title": "Mental Health Renaissance: New Ways to Heal", "url": "https://www.psychologytoday.com/us/blog/consciousness-matters/202303/the-new-mental-health-the-latest-approaches-to-well-being"},
+    {"title": "Row for Recovery: Paddleboarding for Mental Health Awareness", "url": "https://www.msn.com/en-us/health/other/row-for-recovery-campaign-helps-young-adults-row-towards-mental-health-awareness/ar-AA1MCxRX"},
+    {"title": "Teens' Mental Health in 2025", "url": "https://www.msn.com/en-us/health/other/teens-mental-health-looks-different-in-2025-heres-what-parents-need-to-know/ar-AA1MALMc"},
+    {"title": "Feel-Good Hormones", "url": "https://www.health.harvard.edu/mind-and-mood/feel-good-hormones-how-they-affect-your-mind-mood-and-body"},
+    {"title": "Understanding Hormones", "url": "https://rfitness.in/articles/332/understanding-the-impact-of-hormones-on-health-and-wellness"},
+    {"title": "Vitamin D: The Hidden Hormone", "url": "https://healthgains.com/blog/10-interesting-hormone-facts/"},
+    {"title": "11 Hormone Facts", "url": "https://healthgains.com/blog/10-interesting-hormone-facts/"},
+    {"title": "Stress Hormones & Sleep", "url": "https://www.uhc.com/news-articles/healthy-living/hormones"},
+    {"title": "Boost Dopamine Naturally", "url": "https://www.verywellmind.com/how-to-increase-dopamine-4174683"},
+    {"title": "Journaling for Clarity", "url": "https://positivepsychology.com/benefits-of-journaling/"},
+    {"title": "Hydration & Brain Function", "url": "https://www.ncbi.nlm.nih.gov/pmc/articles/PMC2908954/"},
+    {"title": "The Link Between Hormones and Mental Health", "url": "https://www.verywellmind.com/the-link-between-hormones-and-mental-health-7500077"},
+    {"title": "Feel-Good Hormones: How They Affect Your Mind, Mood, and Body", "url": "https://www.health.harvard.edu/mind-and-mood/feel-good-hormones-how-they-affect-your-mind-mood-and-body"},
+    {"title": "The Hormone-Brain Connection: How Hormones Shape Your Mood, Mind, and Mental Wellbeing", "url": "https://blog.princetonih.com/pih-wellness-tips/the-hormone-brain-connection-how-hormones-shape-your-mood-mind-and-mental-wellbeing"},
+    {"title": "Yoga for Better Mental Health", "url": "https://www.health.harvard.edu/staying-healthy/yoga-for-better-mental-health"},
+    {"title": "The Role of Yoga in Balancing Hormones", "url": "https://www.ijfmr.com/papers/2025/1/36061.pdf"},
+    {"title": "The Science of Stillness: Yoga’s Impact on Mental Health", "url": "https://irjhis.com/paper/IRJHIS2506004.pdf"},
+]
 # Database Models
 class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -104,7 +132,9 @@ def load_user(user_id):
 # Routes
 @app.route('/')
 def index():
-    return render_template('index.html')
+    selected_articles = random.sample(articles, 6)
+    return render_template('index.html', articles=selected_articles)
+
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
@@ -438,6 +468,12 @@ def delete_journal(entry_id):
     db.session.commit()
     flash("Journal entry deleted successfully!", "success")
     return redirect(url_for('journal'))
+
+
+
+       
+
+
 
 
 
