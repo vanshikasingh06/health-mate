@@ -2,6 +2,51 @@
 {% extends 'base.html' %}
 {% block content %}
 <h2>😊 Mood Tracker</h2>
+<head>
+  <style>
+    .mood-quest-bar {
+    margin-top: 30px;
+    padding: 20px;
+    background-color: #fff8e1;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.05);
+}
+
+.quest-preview {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    margin-top: 10px;
+}
+
+.quest-card {
+    flex: 1;
+    min-width: 200px;
+    background-color: #ffffff;
+    border-left: 6px solid #ccc;
+    padding: 15px;
+    border-radius: 8px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+}
+
+.quest-card.happy { border-color: #ffeb3b; }
+.quest-card.sad { border-color: #90caf9; }
+.quest-card.anxious { border-color: #f48fb1; }
+.quest-card.calm { border-color: #a5d6a7; }
+.quest-card.excited { border-color: #ffb74d; }
+
+.btn {
+    display: inline-block;
+    margin-top: 10px;
+    padding: 8px 12px;
+    background-color: #4caf50;
+    color: white;
+    text-decoration: none;
+    border-radius: 5px;
+}
+
+  </style>
+</head>
 
 <form method="POST" class="mb-4">
   <div class="row g-2 align-items-center">
@@ -22,51 +67,32 @@
 </form>
 
 <h4>📜 Mood History</h4>
-<div class="table-responsive">
-  <table class="table table-striped align-middle">
-    <thead class="table-light">
-      <tr>
-        <th>Avatar</th>
-        <th>Mood</th>
-        <th>Notes</th>
-        <th>Date</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for log in mood_logs %}
-        <tr>
-          <!-- Avatar image based on mood -->
-          <td>
-            {% if log.mood == 'Happy' %}
-              <img src="{{ url_for('static', filename='avatars/happy.png') }}" alt="Happy Avatar" width="40">
-            {% elif log.mood == 'Sad' %}
-              <img src="{{ url_for('static', filename='avatars/sad.png') }}" alt="Sad Avatar" width="40">
-            {% elif log.mood == 'Angry' %}
-              <img src="{{ url_for('static', filename='avatars/angry.png') }}" alt="Angry Avatar" width="40">
-            {% elif log.mood == 'Excited' %}
-              <img src="{{ url_for('static', filename='avatars/excited.png') }}" alt="Excited Avatar" width="40">
-            {% elif log.mood == 'Tired' %}
-              <img src="{{ url_for('static', filename='avatars/tired.png') }}" alt="Tired Avatar" width="40">
-            {% else %}
-              <img src="{{ url_for('static', filename='avatars/default.png') }}" alt="Default Avatar" width="40">
-            {% endif %}
-          </td>
+<table class="table table-striped">
+  <tr><th>Mood</th><th>Notes</th><th>Date</th><th>Action</th></tr>
+  {% for log in mood_logs %}
+    <tr>
+      <td>{{ log.mood }}</td>
+      <td>{{ log.notes }}</td>
+      <td>{{ log.recorded_at.strftime('%Y-%m-%d') }}</td>
+      <td>
+        <form action="{{ url_for('delete_mood', mood_id=log.id) }}" method="POST" style="display:inline;">
+          <button type="submit" class="btn btn-outline-danger btn-sm delete-btn">🗑️ Delete</button>
+        </form>
+      </td>
+    </tr>
+  {% endfor %}
+</table>
 
-          <!-- Emoji + Mood text -->
-          <td>
-            {% if log.mood == 'Happy' %} 😊 {% elif log.mood == 'Sad' %} 😢 {% elif log.mood == 'Angry' %} 😡 {% elif log.mood == 'Excited' %} 🤩 {% elif log.mood == 'Tired' %} 🥱 {% endif %}
-            {{ log.mood }}
-          </td>
+<style>
+  .delete-btn {
+    transition: background-color 0.3s ease, color 0.3s ease;
+  }
+  .delete-btn:hover {
+    background-color: #dc3545;
+    color: white;
+  }
+</style>
 
-          <td>{{ log.notes or '' }}</td>
-          <td>{{ log.recorded_at.strftime('%Y-%m-%d') if log.recorded_at else '' }}</td>
-        </tr>
-      {% else %}
-        <tr>
-          <td colspan="4" class="text-muted">No mood logs yet 😊</td>
-        </tr>
-      {% endfor %}
-    </tbody>
-  </table>
-</div>
+
+
 {% endblock %}

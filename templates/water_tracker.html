@@ -34,27 +34,30 @@
 </div>
 
 <!-- History table -->
-<h4>📜 Water History</h4>
-<div class="table-responsive">
-  <table class="table table-striped align-middle">
-    <thead class="table-light">
-      <tr>
-        <th>Amount (L)</th>
-        <th>Date</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for log in water_logs %}
-        <tr>
-          <td>{{ log.amount }}</td>
-          <td>{{ log.recorded_at.strftime('%Y-%m-%d') }}</td>
-        </tr>
-      {% else %}
-        <tr>
-          <td colspan="2" class="text-muted">No logs yet. Add your first water entry above! 💧</td>
-        </tr>
-      {% endfor %}
-    </tbody>
-  </table>
-</div>
+<h4>💧 Water Intake History</h4>
+<table class="table table-striped">
+  <tr><th>Amount (ml)</th><th>Date</th><th>Action</th></tr>
+  {% for log in water_logs %}
+    <tr>
+      <td>{{ log.amount }}</td>
+      <td>{{ log.recorded_at.strftime('%Y-%m-%d') }}</td>
+      <td>
+        <form action="{{ url_for('delete_water', water_id=log.id) }}" method="POST" style="display:inline;">
+          <button type="submit" class="btn btn-outline-danger btn-sm delete-btn">🗑️ Delete</button>
+        </form>
+      </td>
+    </tr>
+  {% endfor %}
+</table>
+
+<style>
+  .delete-btn {
+    transition: background-color 0.3s ease, color 0.3s ease;
+  }
+  .delete-btn:hover {
+    background-color: #dc3545;
+    color: white;
+  }
+</style>
+
 {% endblock %}

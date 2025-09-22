@@ -4,6 +4,11 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime, timedelta
+from flask import Blueprint, request, jsonify, render_template
+
+
+
+
 
 
 import os
@@ -48,25 +53,33 @@ articles = [
 ]
 # Database Models
 class User(UserMixin, db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(80), unique=True, nullable=False)
-    email = db.Column(db.String(120), unique=True, nullable=False)
-    password_hash = db.Column(db.String(120), nullable=False)
-    name = db.Column(db.String(100), nullable=False)
-    age = db.Column(db.Integer, nullable=False)
-    height = db.Column(db.Float, nullable=False)
-    weight = db.Column(db.Float, nullable=False)
-    gender = db.Column(db.String(10), nullable=False)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+     __tablename__ = 'user'
+     id = db.Column(db.Integer, primary_key=True)
+     username = db.Column(db.String(80), unique=True, nullable=False)
+     email = db.Column(db.String(120), unique=True, nullable=False)
+     password_hash = db.Column(db.String(120), nullable=False)
+     name = db.Column(db.String(100), nullable=False)
+     age = db.Column(db.Integer, nullable=False)
+     height = db.Column(db.Float, nullable=False)
+     weight = db.Column(db.Float, nullable=False)
+     gender = db.Column(db.String(10), nullable=False)
+     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+     
+
+    
+ 
+
     
     # Relationships
-    health_records = db.relationship('HealthRecord', backref='user', lazy=True)
-    exercise_logs = db.relationship('ExerciseLog', backref='user', lazy=True)
-    water_logs = db.relationship('WaterLog', backref='user', lazy=True)
-    sleep_logs = db.relationship('SleepLog', backref='user', lazy=True)
-    mood_logs = db.relationship('MoodLog', backref='user', lazy=True)
-    goals = db.relationship('Goal', backref='user', lazy=True)
-    journal_entries = db.relationship('JournalEntry', backref='user', lazy=True)
+     health_records = db.relationship('HealthRecord', backref='user', lazy=True)
+     exercise_logs = db.relationship('ExerciseLog', backref='user', lazy=True)
+     water_logs = db.relationship('WaterLog', backref='user', lazy=True)
+     sleep_logs = db.relationship('SleepLog', backref='user', lazy=True)
+     mood_logs = db.relationship('MoodLog', backref='user', lazy=True)
+     goals = db.relationship('Goal', backref='user', lazy=True)
+     journal_entries = db.relationship('JournalEntry', backref='user', lazy=True)
+     health_records = db.relationship('HealthRecord', backref='mood_entry', lazy=True)
+    #user = db.relationship('User', back_populates='mood_quests')
 
 class HealthRecord(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -77,6 +90,15 @@ class HealthRecord(db.Model):
     calories_consumed = db.Column(db.Float)
     calories_needed = db.Column(db.Float)
     recorded_at = db.Column(db.DateTime, default=datetime.utcnow)
+   
+    
+    
+    
+
+
+
+    
+
 
 class ExerciseLog(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -106,6 +128,7 @@ class MoodLog(db.Model):
     mood = db.Column(db.String(50), nullable=False)
     notes = db.Column(db.Text)
     recorded_at = db.Column(db.DateTime, default=datetime.utcnow)
+  
 
 class Goal(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -118,12 +141,48 @@ class Goal(db.Model):
     deadline = db.Column(db.DateTime)
     completed = db.Column(db.Boolean, default=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+
 
 class JournalEntry(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     content = db.Column(db.Text, nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    def generate_challenge(mood):
+     challenges = {
+        'happy': 'Share your joy with someone today!',
+        'sad': 'Write a journal entry about what’s bothering you.',
+        'anxious': 'Try a 5-minute breathing exercise.',
+        'angry': 'Take a walk and reflect before reacting.'
+    }
+     return challenges.get(mood.lower(), 'Reflect on your feelings and write them down.')
+
+@app.route('/moodquest/start', methods=['POST'])
+def start_mood_quest():
+    data = request.get_json()
+    mood = data.get('mood')
+    user_id = data.get('user_id')  # Replace with session['user_id'] if using login
+    challenge = generate_challenge(mood)
+
+    quest = MoodQuest(user_id=user_id, mood=mood, challenge=challenge)
+    db.session.add(quest)
+    db.session.commit()
+
+    return jsonify({'challenge': challenge, 'quest_id': quest.id})
+
+@app.route('/moodquest/complete/<int:quest_id>', methods=['POST'])
+def complete_mood_quest(quest_id):
+    quest = MoodQuest.query.get_or_404(quest_id)
+    quest.points_earned += 10
+    db.session.commit()
+    return jsonify({'points': quest.points_earned})
+
+@app.route('/moodquest/dashboard')
+def mood_quest_dashboard():
+    return render_template('mood_quest_dashboard.html')
+
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -287,6 +346,17 @@ def exercise_tracker():
     
     exercise_logs = ExerciseLog.query.filter_by(user_id=current_user.id).order_by(ExerciseLog.recorded_at.desc()).all()
     return render_template('exercise_tracker.html', exercise_logs=exercise_logs)
+@app.route('/delete_exercise/<int:exercise_id>', methods=['POST'])
+@login_required
+def delete_exercise(exercise_id):
+    entry = ExerciseLog.query.get_or_404(exercise_id)
+    if entry.user_id != current_user.id:
+        abort(403)
+    db.session.delete(entry)
+    db.session.commit()
+    flash("Exercise entry deleted successfully!", "success")
+    return redirect(url_for('exercise_tracker'))
+
 
 @app.route('/water_tracker', methods=['GET', 'POST'])
 @login_required
@@ -310,6 +380,17 @@ def water_tracker():
     target_water = 2.5  # Default target in liters
     
     return render_template('water_tracker.html', water_logs=water_logs, today_water=today_water, target_water=target_water)
+@app.route('/delete_water/<int:water_id>', methods=['POST'])
+@login_required
+def delete_water(water_id):
+    entry = WaterLog.query.get_or_404(water_id)
+    if entry.user_id != current_user.id:
+        abort(403)
+    db.session.delete(entry)
+    db.session.commit()
+    flash("Water entry deleted successfully!", "success")
+    return redirect(url_for('water_tracker'))
+
 
 @app.route('/sleep_tracker', methods=['GET', 'POST'])
 @login_required
@@ -332,6 +413,19 @@ def sleep_tracker():
     
     sleep_logs = SleepLog.query.filter_by(user_id=current_user.id).order_by(SleepLog.recorded_at.desc()).all()
     return render_template('sleep_tracker.html', sleep_logs=sleep_logs)
+@app.route('/delete_sleep/<int:sleep_id>', methods=['POST'])
+@login_required
+def delete_sleep(sleep_id):
+    entry = SleepLog.query.get_or_404(sleep_id)
+    if entry.user_id != current_user.id:
+        abort(403)
+    db.session.delete(entry)
+    db.session.commit()
+    flash("Sleep entry deleted successfully!", "success")
+    return redirect(url_for('sleep_tracker'))
+
+
+
 
 @app.route('/mood_tracker', methods=['GET', 'POST'])
 @login_required
@@ -353,7 +447,29 @@ def mood_tracker():
         return redirect(url_for('mood_tracker'))
     
     mood_logs = MoodLog.query.filter_by(user_id=current_user.id).order_by(MoodLog.recorded_at.desc()).all()
+    
     return render_template('mood_tracker.html', mood_logs=mood_logs)
+
+@app.route('/delete_mood/<int:mood_id>', methods=['POST'])
+@login_required
+def delete_mood(mood_id):
+    entry = MoodLog.query.get_or_404(mood_id)
+    if entry.user_id != current_user.id:
+        abort(403)
+    db.session.delete(entry)
+    db.session.commit()
+    flash("Mood entry deleted successfully!", "success")
+    return redirect(url_for('mood_tracker'))
+
+
+
+
+   
+
+
+
+
+
 
 @app.route('/goals', methods=['GET', 'POST'])
 @login_required
@@ -401,7 +517,21 @@ def update_goal(goal_id):
     
     db.session.commit()
     flash('Goal updated successfully!')
+    
+    
     return redirect(url_for('goals'))
+
+@app.route('/delete_goal/<int:goal_id>', methods=['POST'])
+@login_required
+def delete_goal(goal_id):
+    entry = Goal.query.get_or_404(goal_id)
+    if entry.user_id != current_user.id:
+        abort(403)
+    db.session.delete(entry)
+    db.session.commit()
+    flash("Goal deleted successfully!", "success")
+    return redirect(url_for('goals'))
+                 
 
 
 @app.route('/progress')
@@ -480,6 +610,7 @@ def delete_journal(entry_id):
 
 
 if __name__ == '__main__':
-    with app.app_context():
+   with app.app_context():
         db.create_all()
-    app.run(debug=True)
+        app.run(debug=True) 
+

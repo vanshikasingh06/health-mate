@@ -19,13 +19,29 @@
 
 <h4>📜 Sleep History</h4>
 <table class="table table-striped">
-  <tr><th>Hours</th><th>Quality</th><th>Date</th></tr>
+  <tr><th>Hours</th><th>Quality</th><th>Date</th><th>Action</th></tr>
   {% for log in sleep_logs %}
     <tr>
       <td>{{ log.hours }}</td>
       <td>{{ log.quality }}</td>
       <td>{{ log.recorded_at.strftime('%Y-%m-%d') }}</td>
+      <td>
+        <form action="{{ url_for('delete_sleep', sleep_id=log.id) }}" method="POST" style="display:inline;">
+          <button type="submit" class="btn btn-outline-danger btn-sm delete-btn">🗑️ Delete</button>
+        </form>
+      </td>
     </tr>
   {% endfor %}
 </table>
+
+<style>
+  .delete-btn {
+    transition: background-color 0.3s ease, color 0.3s ease;
+  }
+  .delete-btn:hover {
+    background-color: #dc3545;
+    color: white;
+  }
+</style>
+
 {% endblock %}

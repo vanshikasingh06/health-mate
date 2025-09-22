@@ -15,23 +15,31 @@
 
 <h4>📜 Your Goals</h4>
 <table class="table table-striped">
-  <tr><th>Type</th><th>Target</th><th>Progress</th><th>Deadline</th><th>Status</th><th>Update</th></tr>
+  <tr><th>Type</th><th>Target</th><th>Progress</th><th>Deadline</th><th>Status</th><th>Action</th></tr>
   {% for goal in goals %}
     <tr>
-      <td>{{ goal.goal_type }}</td>
-      <td>{{ goal.target }}</td>
-      <td>{{ goal.current_value }}/{{ goal.target_value }} {{ goal.unit }}</td>
-      <td>{{ goal.deadline.strftime('%Y-%m-%d') if goal.deadline else 'N/A' }}</td>
-      <td>{% if goal.completed %}✅ Completed{% else %}⏳ In Progress{% endif %}</td>
+      <td>{{ goal.type }}</td>
+      <td>{{ goal.target_value }} {{ goal.unit }}</td>
+      <td>{{ goal.progress }}</td>
+      <td>{{ goal.deadline.strftime('%Y-%m-%d') }}</td>
+      <td>{{ goal.status }}</td>
       <td>
-        <form method="POST" action="{{ url_for('update_goal', goal_id=goal.id) }}">
-          <input type="number" step="0.1" name="current_value" placeholder="Update" class="form-control mb-1">
-          <button class="btn btn-primary btn-sm">Update</button>
+        <form action="{{ url_for('delete_goal', goal_id=goal.id) }}" method="POST" style="display:inline;">
+          <button type="submit" class="btn btn-outline-danger btn-sm delete-btn">🗑️ Delete</button>
         </form>
       </td>
     </tr>
-  {% else %}
-    <tr><td colspan="6" class="text-muted">No goals set yet 🎯</td></tr>
   {% endfor %}
 </table>
+
+<style>
+  .delete-btn {
+    transition: background-color 0.3s ease, color 0.3s ease;
+  }
+  .delete-btn:hover {
+    background-color: #dc3545;
+    color: white;
+  }
+</style>
+
 {% endblock %}
