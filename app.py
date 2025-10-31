@@ -13,8 +13,6 @@ from flask import Blueprint, request, jsonify, render_template
 
 import os
 import requests
-
-from flask import Flask, render_template
 import random
 
 
@@ -191,7 +189,7 @@ def load_user(user_id):
 # Routes
 @app.route('/')
 def index():
-    selected_articles = random.sample(articles, 6)
+    selected_articles = random.sample(articles, 8)
     return render_template('index.html', articles=selected_articles)
 
 
@@ -612,5 +610,7 @@ def delete_journal(entry_id):
 if __name__ == '__main__':
    with app.app_context():
         db.create_all()
+
         app.run(debug=True) 
+        app.run(debug=True)
 
