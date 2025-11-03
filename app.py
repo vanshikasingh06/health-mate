@@ -599,7 +599,30 @@ def delete_journal(entry_id):
 
 
 
-       
+from flask import request, render_template
+from textblob import TextBlob
+
+@app.route('/mood', methods=['GET', 'POST'])
+def mood_mirror():
+    mood = None
+    reflection = None
+    if request.method == 'POST':
+        user_input = request.form['journal']
+        analysis = TextBlob(user_input)
+        polarity = analysis.sentiment.polarity
+
+        if polarity > 0.5:
+            mood = "Joyful"
+            reflection = "You radiate light—keep shining."
+        elif polarity < -0.5:
+            mood = "Distressed"
+            reflection = "Your feelings are valid. Breathe. You’re healing."
+        else:
+            mood = "Neutral"
+            reflection = "Stillness is strength. You’re doing great."
+
+    return render_template('journal.html', mood=mood, reflection=reflection)
+
 
 
 
